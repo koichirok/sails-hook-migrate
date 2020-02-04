@@ -21,10 +21,15 @@ module.exports = function(sails) {
 
     },
     initialize: function(done){
-
+      //console.log('>>>>>> sails.hooks.migrate.initialize() called.');
+      // Try to read settings from old Sails then from the new.
+      // 0.12: sails.config.connections & sails.config.models.connection
+      // 1.00: sails.config.datastores & sails.config.models.datastore
+      const datastores = sails.config.connections || sails.config.datastores;
+      const datastoreName = sails.config.models.connection || sails.config.models.datastore || 'default';
       var connection;
       try{
-        connection = sails.config.connections[sails.config.models.connection];
+        connection = datastores[datastoreName];
       }catch(e){}
 
       if( !connection || !connection.adapter){
@@ -49,10 +54,10 @@ module.exports = function(sails) {
           }
         });
 
-      migrate.up(function(){
+      migrate.up(function(err){
         //console.log('done', arguments.length);
         //console.log('arguments', Array.prototype.slice.call(arguments))
-        return done();
+        return done(err);
       });
 
 

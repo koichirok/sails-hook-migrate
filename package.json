@@ -23,9 +23,9 @@
     "plugin"
   ],
   "devDependencies": {
-    "sails": "~0.10.0"
+    "sails": ">0.10.4 <0.13 || >=0.12.0-rc3 <0.13 || >=1.0"
   },
   "dependencies": {
-    "db-migrate": "0.10.0-beta.20"
+    "db-migrate": "0.11.6"
   }
 }
