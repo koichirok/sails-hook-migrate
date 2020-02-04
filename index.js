@@ -26,7 +26,7 @@ module.exports = function(sails) {
       // 0.12: sails.config.connections & sails.config.models.connection
       // 1.00: sails.config.datastores & sails.config.models.datastore
       const datastores = sails.config.connections || sails.config.datastores;
-      const datastoreName = sails.config.models.connection || sails.config.models.datastore || 'default';
+      const datastoreName = sails.config.migrations.connection || sails.config.migrations.datastore || sails.config.models.connection || sails.config.models.datastore || 'default';
       var connection;
       try{
         connection = datastores[datastoreName];
@@ -45,21 +45,32 @@ module.exports = function(sails) {
         return done();
       }
 
-      var migrate = DBMigrate.getInstance(true, {
-          config: {
-            // db-migrate internally will use dev as default config - set dev config to our actual environment connection
-            ['dev']: Object.assign({
-              driver: driver,
-            }, connection)
-          }
-        });
+      const config = {
+        config: {
+          // db-migrate internally will use dev as default config - set dev config to our actual environment connection
+          ['dev']: Object.assign({
+            driver: driver,
+          }, connection)
+        }
+      }
 
+      if (typeof sails.config.migrations === 'object') {
+        const opts = ['table', 'migrationsDir', 'coffeeFile'].reduce((opts, opt) => {
+          if (sails.config.migrations.hasOwnProperty(opt)) {
+            opts[opt.replace(/([A-Z])/, (match, offset, string) => '-' + match.toLowerCase())] = sails.config.migrations[opt];
+          }
+          return opts;
+        }, {})
+        if (opts)
+          config.cmdOptions = opts;
+      }
+
+      var migrate = DBMigrate.getInstance(true, config);
       migrate.up(function(err){
         //console.log('done', arguments.length);
         //console.log('arguments', Array.prototype.slice.call(arguments))
         return done(err);
       });
-
 
     }
   };
